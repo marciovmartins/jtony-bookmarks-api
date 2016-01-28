@@ -1,5 +1,5 @@
-# Ignora extens�es
-*.lock
+# Ignora extensoes
+#*.lock
 
 # Ignorar diretorios e arquivos em um diretorio.
 temptest/**/*
