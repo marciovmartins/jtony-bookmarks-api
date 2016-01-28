@@ -36,4 +36,7 @@ $app->register(new Silex\Provider\DoctrineServiceProvider(), array(
 
 $app['SECURITY_HASH'] = '<(-+KZ&Y<})';
 
+echo "testeDois";
+exit;
+
 return $app;

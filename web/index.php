@@ -10,9 +10,6 @@ date_default_timezone_set( "America/Sao_Paulo" );
 
 $loader = require_once __DIR__.'/../vendor/autoload.php';
 
-echo "teste";
-exit;
-
 $app = require __DIR__ . '/../src/app.php';
 require __DIR__ . '/../src/routes.php';
 
