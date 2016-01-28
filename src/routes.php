@@ -4,10 +4,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 $app->get('/', function() use($app) {
-    return 'Hello World!';
+    return 'service is running';
 });
 
-$app->get('/hello/{name}', function ($name) use ($app) {
+$app->get('/hello', function ($name) use ($app) {
     return 'Hello '.$app->escape($name);
 });
 
