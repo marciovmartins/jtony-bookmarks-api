@@ -3,12 +3,16 @@
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+$app->get('/', function() use($app) {
+    return 'Hello World!';
+});
+
 $app->get('/hello/{name}', function ($name) use ($app) {
     return 'Hello '.$app->escape($name);
 });
 
-echo "testeTres";
-exit;
+//echo "testeTres";
+//exit;
 
 /*
 //Admin
