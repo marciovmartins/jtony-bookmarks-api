@@ -7,6 +7,9 @@ $app->get('/hello/{name}', function ($name) use ($app) {
     return 'Hello '.$app->escape($name);
 });
 
+echo "testeTres";
+exit;
+
 /*
 //Admin
 $app->post('/admins/auth', 'Controllers\AdminController::authenticate');
