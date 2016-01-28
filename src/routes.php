@@ -4,15 +4,15 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 $app->get('/', function() use($app) {
-    return 'silex is running';
+    return 'silex is running A';
 });
 
 $app->get('/test', function() use($app) {
-    return 'test is running';
+    return 'test is running A';
 });
 
 $app->get('/hello/{name}', function ($name) use ($app) {
-    return 'Hello '.$app->escape($name);
+    return 'Hello '.$app->escape($name).' A';
 });
 
 //echo "testeTres";
