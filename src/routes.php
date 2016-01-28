@@ -7,6 +7,10 @@ $app->get('/', function() use($app) {
     return 'service is running';
 });
 
+$app->get('/test', function() use($app) {
+    return 'test is running';
+});
+
 $app->get('/hello', function ($name) use ($app) {
     return 'Hello '.$app->escape($name);
 });
