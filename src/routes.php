@@ -4,21 +4,17 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 $app->get('/', function() use($app) {
-    return 'silex is running B';
+    return 'silex is running';
 });
 
 $app->get('/test', function() use($app) {
-    return 'test is running B';
+    return 'test is running';
 });
 
 $app->get('/hello/{name}', function ($name) use ($app) {
-    return 'Hello '.$app->escape($name).' B';
+    return 'Hello '.$app->escape($name);
 });
 
-//echo "testeTres";
-//exit;
-
-/*
 //Admin
 $app->post('/admins/auth', 'Controllers\AdminController::authenticate');
 
@@ -31,4 +27,3 @@ $app->post('/bookmarks/create', 'Controllers\BookmarkController::create');
 $app->post('/bookmarks', 'Controllers\BookmarkController::bookmarkList');
 $app->post('/bookmarks/{id}', 'Controllers\BookmarkController::edit');
 $app->delete('/bookmarks/{id}', 'Controllers\BookmarkController::edit');
-*/
