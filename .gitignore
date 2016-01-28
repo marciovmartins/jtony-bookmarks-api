@@ -1,0 +1,7 @@
+# Ignora extens�es
+*.lock
+
+# Ignorar diretorios e arquivos em um diretorio.
+temptest/**/*
+vendor/**/*
+logs/**/*
