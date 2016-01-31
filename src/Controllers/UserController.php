@@ -2,7 +2,9 @@
 namespace Controllers;
 
 use BusinessLogic\UserLogic;
+
 use Silex\Application;
+
 use Symfony\Component\HttpFoundation\Response;
 
 class UserController {
@@ -18,7 +20,7 @@ class UserController {
 		$userLogic = new UserLogic($app);
 		$data = $userLogic->authenticate($valuesPost);
 
-		return new Response(json_encode($data), $data['statuscode']);
+		return new Response(json_encode(array('message'=>$data['message'], 'resource'=>$data['resource'])), $data['statuscode'], array('x-access-token'=>$data['token']));
 	}
 
 	public function create(Application $app) {
@@ -32,7 +34,6 @@ class UserController {
 		$userLogic = new UserLogic($app);
 		$data = $userLogic->create($valuesPost);
 
-		return new Response(json_encode($data), $data['statuscode']);
-	}	
-
+		return new Response(json_encode(array('message'=>$data['message'], 'resource'=>$data['resource'])), $data['statuscode'], array('x-access-token'=>$data['token']));
+	}
 }

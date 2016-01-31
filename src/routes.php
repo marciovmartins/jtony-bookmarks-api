@@ -3,19 +3,26 @@
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+use Predis\Client;
+
 $app->get('/', function() use($app) {
-    return 'Rest API Root - nothing to do';
+    return 'Rest API Root';
+});
+
+$app->get('/php', function() use($app) {
+    phpinfo();
 });
 
 //Admin
 $app->post('/admins/auth', 'Controllers\AdminController::authenticate');
 
 //User
-$app->post('/users/create', 'Controllers\UserController::create');
+$app->post('/users', 'Controllers\UserController::create');
 $app->post('/users/auth', 'Controllers\UserController::authenticate');
 
+
 //Bookmark
-$app->post('/bookmarks/create', 'Controllers\BookmarkController::create');
-$app->post('/bookmarks', 'Controllers\BookmarkController::bookmarkList');
-$app->post('/bookmarks/{id}', 'Controllers\BookmarkController::edit');
-$app->delete('/bookmarks/{id}', 'Controllers\BookmarkController::edit');
+$app->get('/users/{idUser}/bookmarks', 'Controllers\BookmarkController::bookmarkList');
+$app->post('/users/{idUser}/bookmarks', 'Controllers\BookmarkController::create');
+$app->post('/bookmarks/{idBookmark}', 'Controllers\BookmarkController::edit');
+$app->delete('/bookmarks/{idBookmark}', 'Controllers\BookmarkController::delete');
