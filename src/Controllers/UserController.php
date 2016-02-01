@@ -1,39 +1,53 @@
 <?php
 namespace Controllers;
 
-use BusinessLogic\UserLogic;
-
 use Silex\Application;
 
 use Symfony\Component\HttpFoundation\Response;
 
-class UserController {
+use BusinessLogic\UserLogic;
+use BusinessLogic\DataTransferObject\UserTransferObject;
+use BusinessLogic\DataTransferObject\ResponseTransferObject;
+
+class UserController extends BaseController{
 
 	public function authenticate(Application $app) {
+		$userDTO = new UserTransferObject($app);
 		$req = $app['request'];
 			
 		$req->isMethod('POST');
 		$valuesPost = $req->request->all();
 
-		//VALIDAR CAMPOS COM DTO PASSAR O DTO PARA LOGIC
+		$errorResponseDTO = $userDTO->validate('authenticate', $valuesPost);
+		if($errorResponseDTO->getStatuscode()==Response::HTTP_BAD_REQUEST) {
+			//houve erro na validaçao, retorna HTTP_BAD_REQUEST 
+			$responseDTO = $errorResponseDTO;
+		} else {
+			//validou userDTO com OK, segue dados validados para autenticaçao
+			$userLogic = new UserLogic($app);
+			$responseDTO = $userLogic->authenticate($userDTO);
+		}
 
-		$userLogic = new UserLogic($app);
-		$data = $userLogic->authenticate($valuesPost);
-
-		return new Response(json_encode(array('message'=>$data['message'], 'resource'=>$data['resource'])), $data['statuscode'], array('x-access-token'=>$data['token']));
+		return $this->serviceResponse($responseDTO);
 	}
 
 	public function create(Application $app) {
+		$userDTO = new UserTransferObject($app);
 		$req = $app['request'];
 			
 		$req->isMethod('POST');
 		$valuesPost = $req->request->all();
 
-		//TODO: VALIDAR CAMPOS COM DTO PASSAR O DTO PARA LOGIC
+		$errorResponseDTO = $userDTO->validate('create', $valuesPost);
+		if($errorResponseDTO->getStatuscode()==Response::HTTP_BAD_REQUEST) {
+			//houve erro na validaçao, retorna HTTP_BAD_REQUEST 
+			$responseDTO = $errorResponseDTO;
+		} else {
+			//validou userDTO com OK, segue dados validados para autenticaçao
+			$userLogic = new UserLogic($app);
+			$responseDTO = $userLogic->create($userDTO);
+		}
 
-		$userLogic = new UserLogic($app);
-		$data = $userLogic->create($valuesPost);
-
-		return new Response(json_encode(array('message'=>$data['message'], 'resource'=>$data['resource'])), $data['statuscode'], array('x-access-token'=>$data['token']));
+		return $this->serviceResponse($responseDTO);
 	}
 }

@@ -1,6 +1,9 @@
 <?php
 namespace BusinessLogic;
 
+use BusinessLogic\DataTransferObject\UserTransferObject;
+use BusinessLogic\DataTransferObject\ResponseTransferObject;
+
 use Symfony\Component\HttpFoundation\Response;
 
 use Silex\Application;
@@ -13,16 +16,17 @@ class UserLogic extends BaseBusinessLogic {
 		parent::__construct($app);
 	}
 
-	public function authenticate($valuesPost) {
-		$userModel = new UserModel($this->app);		
+	public function authenticate(UserTransferObject $userDTO) {
+		$userModel = new UserModel($this->app);
+		$responseDTO = new ResponseTransferObject($this->app);
 		$foundUser = false;
-		$return = [];
 
 		$passPrefix = $userModel->find(array(
-					'email'=>$valuesPost['email'],
+					'email'=>$userDTO->getEmail(),
 					'active'=>1
 				),
 				array('pass_prefix'));
+
 
 		if(count($passPrefix) > 0 && isset($passPrefix[0]['pass_prefix'])) {
 			$passPrefix = $passPrefix[0]['pass_prefix'];
@@ -31,9 +35,11 @@ class UserLogic extends BaseBusinessLogic {
 		}
 
 		if($passPrefix) {
+			$userDTO->setPassword($passPrefix.$userDTO->getPassword());
+			
 			$rs = $userModel->find(array(
-						'email'=>$valuesPost['email'],
-						'password'=>$this->getStrongPass($passPrefix.$valuesPost['password']),
+						'email'=>$userDTO->getEmail(),
+						'password'=>$this->getStrongPass($userDTO->getPassword()),
 						'active'=>1
 					),
 					array('id', 'name', 'email', 'nick'));
@@ -44,66 +50,63 @@ class UserLogic extends BaseBusinessLogic {
 				$tokenLogic = new TokenLogic($this->app);
 				$token = $tokenLogic->create($rs['id'], TokenLogic::TOKEN_TYPE_USER);
 
-				$return['statuscode'] = Response::HTTP_OK;
-				$return['token'] = $token;
-				$return['message'] = "User ".$rs['nick']." loged in";
-				$return['resource'] = array(
-						'id' => $rs['id'],
-						'name' => $rs['name'],
-						'email' => $rs['email'],
-						'nick' => $rs['nick'],
-					);
+				$userDTO->setId($rs['id']);
+				$userDTO->setName($rs['name']);
+				$userDTO->setNick($rs['nick']);
+
+				$responseDTO->setStatuscode(Response::HTTP_OK);
+				$responseDTO->setResource($userDTO);
+				$responseDTO->setToken($token);
+				$responseDTO->setMessage("User ".$userDTO->getName()." loged in");
 
 				$foundUser = true;
 			}
 		}
 
 		if(!$foundUser) {
-			$return['statuscode'] = Response::HTTP_NOT_FOUND;
-			$return['token'] = null;
-			$return['message'] = "User not found";
-			$return['resource'] = null;
+			$responseDTO->setStatuscode(Response::HTTP_NOT_FOUND);
+			$responseDTO->setResource(new UserTransferObject($this->app));
+			$responseDTO->setToken(null);
+			$responseDTO->setMessage('User not found');
 		}
 
-		return $return;
+		return $responseDTO;
 	}
 
-	public function create($valuesPost) {
+	public function create(UserTransferObject $userDTO) {
 		$userModel = new UserModel($this->app);
-		$security = $this->app['settings']['security'];
-		$return = [];
+
+		$responseDTO = new ResponseTransferObject($this->app);
+		$responseDTO->setResource(new UserTransferObject($this->app));
+		$responseDTO->setToken(null);
 
 		$rs = $userModel->find(array(
-					'email'=>$valuesPost['email']
+					'email'=>$userDTO->getEmail()
 				), array('id'));
 
 		if(count($rs) == 0) {
 			$passPrefix = $this->getRandomString();
 
 			$saved = $userModel->save(array(
-						'name' => $valuesPost['name'],
-						'email'=>$valuesPost['email'],
-						'nick' => $valuesPost['nick'],
+						'name' => $userDTO->getName(),
+						'email'=>$userDTO->getEmail(),
+						'nick' => $userDTO->getNick(),
 						'pass_prefix'=>$passPrefix,
-						'password'=>$this->getStrongPass($passPrefix.$valuesPost['password'])
+						'password'=>$this->getStrongPass($passPrefix.$userDTO->getPassword())
 					));
 			
 			if($saved) {
-				$return = $this->authenticate($valuesPost);
+				return $this->authenticate($userDTO);
 			} else {
-				$return['statuscode'] = Response::HTTP_INTERNAL_SERVER_ERROR;
-				$return['token'] = null;
-				$return['message'] = "User not Created, internal error has ocourred";
-				$return['resource'] = null;
+				$responseDTO->setStatuscode(Response::HTTP_INTERNAL_SERVER_ERROR);
+				$responseDTO->setMessage('User not Created, internal error has ocourred');
 			}
 		} else {
-			$return['statuscode'] = Response::HTTP_CONFLICT;
-			$return['token'] = null;
-			$return['message'] = "User with email: ".$valuesPost['email']." already exists";
-			$return['resource'] = null;
+			$responseDTO->setStatuscode(Response::HTTP_CONFLICT);
+			$responseDTO->setMessage('User with email: '.$userDTO->getEmail().' already exists');
 		}
 
-		return $return;
+		return $responseDTO;
 	}
 
 }

@@ -15,7 +15,9 @@
 
         "silex/silex": "~1.3",
         "doctrine/dbal": "2.3.*",
-        "predis/predis": "~1.0.3"
+        "predis/predis": "~1.0.3",
+        "zircote/swagger-php": "^2.0.5",
+        "symfony/validator": "^2.3.3"
     },
     "extra": {
         "heroku": {

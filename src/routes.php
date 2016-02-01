@@ -22,7 +22,7 @@ $app->post('/users/auth', 'Controllers\UserController::authenticate');
 
 
 //Bookmark
-$app->get('/users/{idUser}/bookmarks', 'Controllers\BookmarkController::bookmarkList');
-$app->post('/users/{idUser}/bookmarks', 'Controllers\BookmarkController::create');
-$app->post('/bookmarks/{idBookmark}', 'Controllers\BookmarkController::edit');
-$app->delete('/bookmarks/{idBookmark}', 'Controllers\BookmarkController::delete');
+$app->get('/users/{idUser}/bookmarks', 'Controllers\BookmarkController::bookmarkList')->assert('idUser', '\d+');
+$app->post('/users/{idUser}/bookmarks', 'Controllers\BookmarkController::create')->assert('idUser', '\d+');
+$app->post('/bookmarks/{idBookmark}', 'Controllers\BookmarkController::edit')->assert('idBookmark', '\d+');
+$app->delete('/bookmarks/{idBookmark}', 'Controllers\BookmarkController::delete')->assert('idBookmark', '\d+');

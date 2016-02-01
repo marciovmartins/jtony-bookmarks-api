@@ -7,111 +7,125 @@ use Silex\Application;
 
 use Models\BookmarkModel;
 
+use BusinessLogic\DataTransferObject\BookmarkTransferObject;
+use BusinessLogic\DataTransferObject\ResponseTransferObject;
+use BusinessLogic\DataTransferObject\BaseTransferObject;
+
 class BookmarkLogic extends BaseBusinessLogic{
 
 	public function __construct(Application $app) {
 		parent::__construct($app);
 	}
 
-	public function create($valuesPost, $token) {
+	public function create(BookmarkTransferObject $bookmarkDTO, $token) {
 		$bookmarkModel = new BookmarkModel($this->app);
-		$return = [];
+		$responseDTO = new ResponseTransferObject($this->app);
 
 		//TODO: ALTERAR VERIFICAÇAO TOKEN/REDIS PARA UM MIDDLEWARE BEFORE NO FUTURO
 		$tokenLogic = new TokenLogic($this->app);
-		$tokenAuth = $tokenLogic->authenticate($token, $valuesPost['id_user'], TokenLogic::TOKEN_TYPE_USER);
+		$tokenAuth = $tokenLogic->authenticate($token, $bookmarkDTO->getIdUser(), TokenLogic::TOKEN_TYPE_USER);
 
-		if(!is_null($tokenAuth->token)) {
+		if($tokenAuth->getStatuscode()==Response::HTTP_OK) {
 			$rs = $bookmarkModel->find(array(
-						'url'=>$valuesPost['url'],
-						'id_user'=>$valuesPost['id_user'],
+						'url'=>$bookmarkDTO->getUrl(),
+						'id_user'=>$bookmarkDTO->getIduser(),
 						'active'=>1
 					));
 
 			if(count($rs) == 0) {
 				$saved = $bookmarkModel->save(array(
-							'url'=>$valuesPost['url'],
-							'id_user'=>$valuesPost['id_user']
+							'url'=>$bookmarkDTO->getUrl(),
+							'id_user'=>$bookmarkDTO->getIduser()
 						));
 				
-				if($saved){
-					$return['statuscode'] = Response::HTTP_OK;
-					$return['message'] = "Url saved";
-					$return['resource'] = $valuesPost['url'];
+				if($saved) {
+					$responseDTO->setStatuscode(Response::HTTP_OK);
+					$responseDTO->setMessage("Url saved");
+					$responseDTO->setResource($bookmarkDTO);
 				} else {
-					$return['statuscode'] = Response::HTTP_INTERNAL_SERVER_ERROR;
-					$return['message'] = "Url not Created, internal error has ocourred";
-					$return['resource'] = null;
+					$responseDTO->setStatuscode(Response::HTTP_INTERNAL_SERVER_ERROR);
+					$responseDTO->setMessage("Url not Created, internal error has ocourred");
+					$responseDTO->setResource(new BaseTransferObject($this->app));
 				}
 			} else {
-				$return['statuscode'] = Response::HTTP_CONFLICT;
-				$return['message'] = "Url: ".$valuesPost['url']." already exists";
-				$return['resource'] = null;
+				$responseDTO->setStatuscode(Response::HTTP_CONFLICT);
+				$responseDTO->setMessage("Url: ".$bookmarkDTO->getUrl()." already exists");
+				$responseDTO->setResource(new BaseTransferObject($this->app));
 			}
 		} else {
-			$return = $tokenAuth->response;
+			$responseDTO = $tokenAuth;
 		}
 
-		return $return;
+		return $responseDTO;
 	}
 
-	public function update($valuesPost, $token) {
+	public function update(BookmarkTransferObject $bookmarkDTO, $token) {
 		$bookmarkModel = new BookmarkModel($this->app);
-		$return = [];
-
-		$bookmarkId = $valuesPost['id'];
-		unset($valuesPost['id']);
+		$responseDTO = new ResponseTransferObject($this->app);
 
 		//apenas o usuario que criou o bookmark pode alterar, 
 		//remover esse tratamento para que admins possam editar bookmarks
-		$rs = $bookmarkModel->find(
-				array('id'=>$bookmarkId),
-				array('id_user', 'active')
+		$rsBookmark = $bookmarkModel->find(
+				array('id'=>$bookmarkDTO->getId()),
+				array('id_user', 'url', 'active')
 			);
-		$rsBookmark = $rs[0];
-		$valuesPost['id_user'] = $rsBookmark['id_user'];
+		$rsBookmark = (count($rsBookmark)) ? $rsBookmark[0] : array('id_user'=>0, 'url'=>'', 'active'=>0);
+		$bookmarkDTO->setIdUser($rsBookmark['id_user']);
 
 		//TODO: ALTERAR VERIFICAÇAO TOKEN/REDIS PARA UM MIDDLEWARE BEFORE NO FUTURO
 		$tokenLogic = new TokenLogic($this->app);
-		$tokenAuth = $tokenLogic->authenticate($token, $valuesPost['id_user']);
+		$tokenAuth = $tokenLogic->authenticate($token, $bookmarkDTO->getIdUser());
 
-		if(!$rsBookmark['active']) {
-			$return['statuscode'] = Response::HTTP_NOT_FOUND;
-			$return['token'] = null;
-			$return['message'] = "Bookmark not found";
-			$return['resource'] = null;
-		} else if(!is_null($tokenAuth->token)) {
+		if(!$rsBookmark['active'] && $tokenAuth->getStatuscode()==Response::HTTP_OK) {
+			$responseDTO->setStatuscode(Response::HTTP_NOT_FOUND);
+			$responseDTO->setMessage("Bookmark not found");
+			$responseDTO->setResource(new BaseTransferObject($this->app));
+
+		} else if($bookmarkDTO->getUrl()!=null && $bookmarkDTO->getUrl()==$rsBookmark['url'] && $tokenAuth->getStatuscode()==Response::HTTP_OK) {
+			$responseDTO->setStatuscode(Response::HTTP_CONFLICT);
+			$responseDTO->setMessage("Url: ".$bookmarkDTO->getUrl()." is the same url in database");
+			$responseDTO->setResource(new BaseTransferObject($this->app));
+
+		} else if($tokenAuth->getStatuscode()==Response::HTTP_OK) {
+
+			$updateFields = ($bookmarkDTO->getUrl()==null) ? array('active'=>0) : array('url'=>$bookmarkDTO->getUrl());
+
 			$saved = $bookmarkModel->update(
-					$valuesPost,
+					$updateFields,
 					array(
-						'id'=>$bookmarkId
+						'id'=>$bookmarkDTO->getId()
 					));
 			
 			if($saved){
-				$return['statuscode'] = Response::HTTP_OK;
-				$return['message'] = isset($valuesPost['url']) ? "Bookmark updated" : "Bookmark removed";
-				$return['resource'] = isset($valuesPost['url']) ? $valuesPost['url'] : null;
+				$message = ($bookmarkDTO->getUrl()==null) ? "Bookmark removed" : "Bookmark updated";
+				$resourceDTO = ($bookmarkDTO->getUrl()==null) ? (new BaseTransferObject($this->app)) : $bookmarkDTO;
+
+				$responseDTO->setStatuscode(Response::HTTP_OK);
+				$responseDTO->setMessage($message);
+				$responseDTO->setResource($resourceDTO);
+
 			} else {
-				$return['statuscode'] = Response::HTTP_INTERNAL_SERVER_ERROR;
-				$return['message'] = "Url not updated, internal error has ocourred";
-				$return['resource'] = null;
+				$responseDTO->setStatuscode(Response::HTTP_INTERNAL_SERVER_ERROR);
+				$responseDTO->setMessage('Url not updated, internal error has ocourred');
+				$responseDTO->setResource(new BaseTransferObject($this->app));
+
 			}
 		} else {
-			$return = $tokenAuth->response;
+			$responseDTO = $tokenAuth;
 		}
 
-		return $return;
+		return $responseDTO;
 	}	
 
 	public function bookmarkList($idUser, $token) {
 		$bookmarkModel = new BookmarkModel($this->app);
-		$return = [];
+		$responseDTO = new ResponseTransferObject($this->app);
 
 		//TODO: ALTERAR VERIFICAÇAO TOKEN/REDIS PARA UM MIDDLEWARE BEFORE NO FUTURO
 		$tokenLogic = new TokenLogic($this->app);
-		$tokenAuth = $tokenLogic->authenticate($token, $idUser);
+		$tokenAuth = $tokenLogic->authenticate($token, $idUser, TokenLogic::TOKEN_TYPE_ADMIN);
 
-		if(!is_null($tokenAuth->token)) {
+		if($tokenAuth->getStatuscode()==Response::HTTP_OK) {
 			$rs = $bookmarkModel->find(array(
 						'id_user'=>$idUser,
 						'active'=>1
@@ -122,14 +136,14 @@ class BookmarkLogic extends BaseBusinessLogic{
 				return array('id'=>$t['id'], 'url'=>$t['url']);
 			}, $rs);		
 
-			$return['statuscode'] = Response::HTTP_OK;
-			$return['message'] = $bookmarks;
-			$return['resource'] = $bookmarks;
+			$responseDTO->setStatuscode(Response::HTTP_OK);
+			$responseDTO->setMessage($bookmarks);
+			$responseDTO->setResource(new BaseTransferObject($this->app));
 		} else {
-			$return = $tokenAuth->response;
+			$responseDTO = $tokenAuth;
 		}
 
-		return $return;
+		return $responseDTO;
 	}
 
 }

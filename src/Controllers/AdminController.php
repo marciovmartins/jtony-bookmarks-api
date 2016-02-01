@@ -1,24 +1,34 @@
 <?php
 namespace Controllers;
 
-use BusinessLogic\AdminLogic;
 use Silex\Application;
+
 use Symfony\Component\HttpFoundation\Response;
 
-class AdminController {
+use BusinessLogic\AdminLogic;
+use BusinessLogic\DataTransferObject\AdminTransferObject;
+use BusinessLogic\DataTransferObject\ResponseTransferObject;
+
+class AdminController extends BaseController{
 
 	public function authenticate(Application $app) {
+		$adminDTO = new AdminTransferObject($app);
 		$req = $app['request'];
 			
 		$req->isMethod('POST');
 		$valuesPost = $req->request->all();
 
-		//VALIDAR CAMPOS COM DTO PASSAR O DTO PARA LOGIC
+		$errorResponseDTO = $adminDTO->validate('authenticate', $valuesPost);
+		if($errorResponseDTO->getStatuscode()==Response::HTTP_BAD_REQUEST) {
+			//houve erro na validaçao, retorna HTTP_BAD_REQUEST 
+			$responseDTO = $errorResponseDTO;
+		} else {
+			//validou userDTO com OK, segue dados validados para autenticaçao
+			$adminLogic = new AdminLogic($app);
+			$responseDTO = $adminLogic->authenticate($adminDTO);
+		}
 
-		$adminLogic = new AdminLogic($app);
-		$data = $adminLogic->authenticate($valuesPost);
-
-		return new Response(json_encode(array('message'=>$data['message'], 'resource'=>$data['resource'])), $data['statuscode'], array('x-access-token'=>$data['token']));
-	}
+		return $this->serviceResponse($responseDTO);
+	}	
 
 }

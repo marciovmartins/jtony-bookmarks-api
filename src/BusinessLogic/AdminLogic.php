@@ -1,39 +1,45 @@
 <?php
 namespace BusinessLogic;
 
+use BusinessLogic\DataTransferObject\AdminTransferObject;
+use BusinessLogic\DataTransferObject\ResponseTransferObject;
+
 use Symfony\Component\HttpFoundation\Response;
 
 use Silex\Application;
 
 use Models\AdminModel;
 
-class AdminLogic extends BaseBusinessLogic{
+class AdminLogic extends BaseBusinessLogic {
 
 	public function __construct(Application $app) {
 		parent::__construct($app);
 	}
 
-	public function authenticate($valuesPost) {
+	public function authenticate(AdminTransferObject $adminDTO) {
 		$adminModel = new AdminModel($this->app);
-		$foundAdmin = false;	
-		$return = [];
+		$responseDTO = new ResponseTransferObject($this->app);
+		$foundUser = false;
 
 		$passPrefix = $adminModel->find(array(
-					'email'=>$valuesPost['email'],
+					'email'=>$adminDTO->getEmail(),
 					'active'=>1
 				),
 				array('pass_prefix'));
+
 
 		if(count($passPrefix) > 0 && isset($passPrefix[0]['pass_prefix'])) {
 			$passPrefix = $passPrefix[0]['pass_prefix'];
 		} else {
 			$passPrefix = null;
-		}		
+		}
 
 		if($passPrefix) {
+			$adminDTO->setPassword($passPrefix.$adminDTO->getPassword());
+			
 			$rs = $adminModel->find(array(
-						'email'=>$valuesPost['email'],
-						'password'=>$this->getStrongPass($passPrefix.$valuesPost['password']),
+						'email'=>$adminDTO->getEmail(),
+						'password'=>$this->getStrongPass($adminDTO->getPassword()),
 						'active'=>1
 					),
 					array('id', 'name', 'email', 'nick'));
@@ -44,28 +50,26 @@ class AdminLogic extends BaseBusinessLogic{
 				$tokenLogic = new TokenLogic($this->app);
 				$token = $tokenLogic->create($rs['id'], TokenLogic::TOKEN_TYPE_ADMIN);
 
-				$return['statuscode'] = Response::HTTP_OK;;
-				$return['token'] = $token;
-				$return['message'] = "Admin ".$rs['nick']." loged in";
-				$return['resource'] = array(
-						'id' => $rs['id'],
-						'name' => $rs['name'],
-						'email' => $rs['email'],
-						'nick' => $rs['nick']
-					);
+				$adminDTO->setId($rs['id']);
+				$adminDTO->setName($rs['name']);
+				$adminDTO->setNick($rs['nick']);
 
-				$foundAdmin = true;
+				$responseDTO->setStatuscode(Response::HTTP_OK);
+				$responseDTO->setResource($adminDTO);
+				$responseDTO->setToken($token);
+				$responseDTO->setMessage("Admin ".$adminDTO->getName()." loged in");
+
+				$foundUser = true;
 			}
 		}
 
-		if(!$foundAdmin) {
-			$return['statuscode'] = Response::HTTP_NOT_FOUND;
-			$return['token'] = null;
-			$return['message'] = "Admin not found";
-			$return['resource'] = null;
+		if(!$foundUser) {
+			$responseDTO->setStatuscode(Response::HTTP_NOT_FOUND);
+			$responseDTO->setResource(new UserTransferObject($this->app));
+			$responseDTO->setToken(null);
+			$responseDTO->setMessage('Admin not found');
 		}
 
-		return $return;
+		return $responseDTO;
 	}
-
 }
