@@ -11,6 +11,7 @@ class BookmarkTransferObject extends BaseTransferObject {
 	protected $id;
 	protected $url;
 	protected $idUser;
+	protected $active;
 	protected $bookmarkList;
 	
 	public function __construct(Application $app) {
@@ -100,8 +101,12 @@ class BookmarkTransferObject extends BaseTransferObject {
 		$this->idUser = $idUser;
 	}
 
-	public function getBookmarkList() {
-		return $this->bookmarkList;
+	public function setActive($active) {
+		$this->active = $active;
+	}	
+
+	public function getActive() {
+		return $this->active;
 	}
 
 	public function setBookmarkList($bookmarkList) {

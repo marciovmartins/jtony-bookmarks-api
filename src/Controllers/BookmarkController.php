@@ -64,7 +64,7 @@ class BookmarkController extends BaseController{
 
 	public function getBookmark($idBookmark, Application $app) {
 		$bookmarkDTO = new BookmarkTransferObject($app);
-		$valuesPost = [];
+		$req = $app['request'];
 
 		$req->isMethod('POST');
 		$valuesPost['id'] = (int)$idBookmark;;
@@ -79,7 +79,7 @@ class BookmarkController extends BaseController{
 		} else {
 			//validou bookmarkDTO com OK, segue dados validados para autenticaçao
 			$bookmarkLogic = new BookmarkLogic($app);
-			$responseDTO = $bookmarkLogic->get($bookmarkDTO, $req->headers->get('x-access-token'));
+			$responseDTO = $bookmarkLogic->getBookmark($bookmarkDTO, $req->headers->get('x-access-token'));
 		}
 
 		return $this->serviceResponse($responseDTO);

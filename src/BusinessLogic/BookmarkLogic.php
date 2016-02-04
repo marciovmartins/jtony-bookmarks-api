@@ -115,6 +115,40 @@ class BookmarkLogic extends BaseBusinessLogic{
 		}
 
 		return $responseDTO;
+	}
+
+	public function getBookmark(BookmarkTransferObject $bookmarkDTO, $token) {
+		$bookmarkModel = new BookmarkModel($this->app);
+		$responseDTO = new ResponseTransferObject($this->app);
+
+		//apenas o usuario que criou o bookmark pode alterar, 
+		//remover esse tratamento para que admins possam editar bookmarks
+		$rsBookmark = $bookmarkModel->find(
+				array('id'=>$bookmarkDTO->getId()),
+				array('id_user', 'url', 'active')
+			);
+		$rsBookmark = (count($rsBookmark)) ? $rsBookmark[0] : array('id_user'=>0, 'url'=>'', 'active'=>0);
+		$bookmarkDTO->setIdUser($rsBookmark['id_user']);
+		$bookmarkDTO->setUrl($rsBookmark['url']);
+		$bookmarkDTO->setActive($rsBookmark['active']);
+
+		//TODO: ALTERAR VERIFICAÇAO TOKEN/REDIS PARA UM MIDDLEWARE BEFORE NO FUTURO
+		$tokenLogic = new TokenLogic($this->app);
+		$tokenAuth = $tokenLogic->authenticate($token, $bookmarkDTO->getIdUser());
+
+		if($tokenAuth->getStatuscode()==Response::HTTP_OK) {
+			$responseDTO->setStatuscode(Response::HTTP_OK);
+			$responseDTO->setMessage(1);
+			$responseDTO->setResource($bookmarkDTO);
+		} else if(!$bookmarkDTO->getActive()) {
+			$responseDTO->setStatuscode(Response::HTTP_NOT_FOUND);
+			$responseDTO->setMessage("Bookmark not found");
+			$responseDTO->setResource(new BaseTransferObject($this->app));
+		} else {
+			$responseDTO = $tokenAuth;
+		}
+
+		return $responseDTO;
 	}	
 
 	public function bookmarkList($idUser, $token) {
