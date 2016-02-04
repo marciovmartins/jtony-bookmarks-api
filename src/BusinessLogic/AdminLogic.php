@@ -65,7 +65,7 @@ class AdminLogic extends BaseBusinessLogic {
 
 		if(!$foundUser) {
 			$responseDTO->setStatuscode(Response::HTTP_NOT_FOUND);
-			$responseDTO->setResource(new UserTransferObject($this->app));
+			$responseDTO->setResource(new AdminTransferObject($this->app));
 			$responseDTO->setToken(null);
 			$responseDTO->setMessage('Admin not found');
 		}
