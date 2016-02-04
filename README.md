@@ -17,6 +17,4 @@ No momento a API se encontra disponível para avaliação no endereço de testes
 
 
 O QUE FALTA FAZER:
--Refatorar Controllers e Logics para que utilizem DataTransferObjects para transferir dados (hoje com arrays e não é a maneira mais adequada) e também validar os dados imputados
--Aplicação cliente
 -Swagger
