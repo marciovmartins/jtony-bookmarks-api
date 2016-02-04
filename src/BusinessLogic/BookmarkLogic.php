@@ -134,11 +134,14 @@ class BookmarkLogic extends BaseBusinessLogic{
 
 			$bookmarks = array_map(function($t){
 				return array('id'=>$t['id'], 'url'=>$t['url']);
-			}, $rs);		
+			}, $rs);
+
+			$bookmarkListDTO = new BookmarkTransferObject($this->app);
+			$bookmarkListDTO->setBookmarkList($bookmarks);
 
 			$responseDTO->setStatuscode(Response::HTTP_OK);
-			$responseDTO->setMessage($bookmarks);
-			$responseDTO->setResource(new BaseTransferObject($this->app));
+			$responseDTO->setMessage(count($bookmarks));
+			$responseDTO->setResource($bookmarkListDTO);
 		} else {
 			$responseDTO = $tokenAuth;
 		}

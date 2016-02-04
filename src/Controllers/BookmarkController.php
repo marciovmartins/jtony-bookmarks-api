@@ -62,6 +62,29 @@ class BookmarkController extends BaseController{
 		return $this->serviceResponse($responseDTO);
 	}
 
+	public function getBookmark($idBookmark, Application $app) {
+		$bookmarkDTO = new BookmarkTransferObject($app);
+		$valuesPost = [];
+
+		$req->isMethod('POST');
+		$valuesPost['id'] = (int)$idBookmark;;
+		$valuesPost['active'] = 1;
+
+		$validateAction = 'get';
+
+		$errorResponseDTO = $bookmarkDTO->validate($validateAction, $valuesPost);
+		if($errorResponseDTO->getStatuscode()==Response::HTTP_BAD_REQUEST) {
+			//houve erro na validaçao, retorna HTTP_BAD_REQUEST 
+			$responseDTO = $errorResponseDTO;
+		} else {
+			//validou bookmarkDTO com OK, segue dados validados para autenticaçao
+			$bookmarkLogic = new BookmarkLogic($app);
+			$responseDTO = $bookmarkLogic->get($bookmarkDTO, $req->headers->get('x-access-token'));
+		}
+
+		return $this->serviceResponse($responseDTO);
+	}	
+
 	public function delete($idBookmark, Application $app) {
 		$req = $app['request'];
 			
@@ -71,9 +94,7 @@ class BookmarkController extends BaseController{
 		$valuesPost['active'] = 0;
 
 		return $this->edit($idBookmark, $app, $valuesPost);
-	}	
-
-
+	}
 
 	public function bookmarkList($idUser, Application $app) {
 		$idUser = (int)$idUser;

@@ -25,4 +25,5 @@ $app->post('/users/auth', 'Controllers\UserController::authenticate');
 $app->get('/users/{idUser}/bookmarks', 'Controllers\BookmarkController::bookmarkList')->assert('idUser', '\d+');
 $app->post('/users/{idUser}/bookmarks', 'Controllers\BookmarkController::create')->assert('idUser', '\d+');
 $app->post('/bookmarks/{idBookmark}', 'Controllers\BookmarkController::edit')->assert('idBookmark', '\d+');
+$app->get('/bookmarks/{idBookmark}', 'Controllers\BookmarkController::delete')->assert('idBookmark', '\d+');
 $app->delete('/bookmarks/{idBookmark}', 'Controllers\BookmarkController::delete')->assert('idBookmark', '\d+');

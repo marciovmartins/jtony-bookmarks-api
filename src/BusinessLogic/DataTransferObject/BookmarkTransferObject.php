@@ -11,6 +11,7 @@ class BookmarkTransferObject extends BaseTransferObject {
 	protected $id;
 	protected $url;
 	protected $idUser;
+	protected $bookmarkList;
 	
 	public function __construct(Application $app) {
 		parent::__construct($app);
@@ -69,7 +70,9 @@ class BookmarkTransferObject extends BaseTransferObject {
 		$this->validateActions['delete'] = array(
 													'fields' => array('id'),
 													'constraint' => $constraintDelete
-												);		
+												);
+
+		$this->validateActions['get'] = $this->validateActions['delete'] ;
 
 	}
 
@@ -97,11 +100,20 @@ class BookmarkTransferObject extends BaseTransferObject {
 		$this->idUser = $idUser;
 	}
 
+	public function getBookmarkList() {
+		return $this->bookmarkList;
+	}
+
+	public function setBookmarkList($bookmarkList) {
+		$this->bookmarkList = $bookmarkList;
+	}
+
 	public function toArray() {
 		return array(
 				'id'=>$this->id,
 				'url'=>$this->url,
-				'idUser'=>$this->idUser
+				'idUser'=>$this->idUser,
+				'bookmarkList'=>$this->bookmarkList
 			);
 	}
 
