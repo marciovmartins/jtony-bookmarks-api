@@ -6,6 +6,7 @@ use Silex\Application;
 use Symfony\Component\HttpFoundation\Response;
 
 use BusinessLogic\AdminLogic;
+use BusinessLogic\UserLogic;
 use BusinessLogic\DataTransferObject\AdminTransferObject;
 use BusinessLogic\DataTransferObject\ResponseTransferObject;
 
@@ -30,5 +31,19 @@ class AdminController extends BaseController{
 
 		return $this->serviceResponse($responseDTO);
 	}	
+
+	public function getUsers($idAdmin, Application $app) {
+
+		$adminDTO = new AdminTransferObject($app);
+		$req = $app['request'];
+		$idAdmin = (int)$idAdmin;
+		$adminDTO->setId($idAdmin);
+
+		$userLogic = new UserLogic($app);
+		$responseDTO = $userLogic->userList($adminDTO, $req->headers->get('x-access-token'));		
+
+		return $this->serviceResponse($responseDTO);
+	}
+
 
 }

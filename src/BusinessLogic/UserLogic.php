@@ -2,6 +2,7 @@
 namespace BusinessLogic;
 
 use BusinessLogic\DataTransferObject\UserTransferObject;
+use BusinessLogic\DataTransferObject\AdminTransferObject;
 use BusinessLogic\DataTransferObject\ResponseTransferObject;
 
 use Symfony\Component\HttpFoundation\Response;
@@ -104,6 +105,38 @@ class UserLogic extends BaseBusinessLogic {
 		} else {
 			$responseDTO->setStatuscode(Response::HTTP_CONFLICT);
 			$responseDTO->setMessage('User with email: '.$userDTO->getEmail().' already exists');
+		}
+
+		return $responseDTO;
+	}
+
+
+	public function userList(AdminTransferObject $adminDTO, $token) {
+		$userModel = new UserModel($this->app);
+		$responseDTO = new ResponseTransferObject($this->app);
+
+		//TODO: ALTERAR VERIFICAÇAO TOKEN/REDIS PARA UM MIDDLEWARE BEFORE NO FUTURO
+		$tokenLogic = new TokenLogic($this->app);
+		$tokenAuth = $tokenLogic->authenticate($token, $adminDTO->getId());
+
+		if($tokenAuth->getStatuscode()==Response::HTTP_OK) {
+			$rs = $userModel->find(array(
+						'active'=>1
+					),
+					array('id', 'name', 'nick', 'email'));
+
+			$users = array_map(function($t){
+				return array('id'=>$t['id'], 'name'=>$t['name'], 'nick'=>$t['nick'], 'email'=>$t['email']);
+			}, $rs);
+
+			$userListDTO = new UserTransferObject($this->app);
+			$userListDTO->setUserList($users);
+
+			$responseDTO->setStatuscode(Response::HTTP_OK);
+			$responseDTO->setMessage(count($users));
+			$responseDTO->setResource($userListDTO);
+		} else {
+			$responseDTO = $tokenAuth;
 		}
 
 		return $responseDTO;

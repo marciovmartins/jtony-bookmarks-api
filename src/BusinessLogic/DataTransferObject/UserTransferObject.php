@@ -13,6 +13,7 @@ class UserTransferObject extends BaseTransferObject {
 	protected $email;
 	protected $nick;
 	protected $password;
+	protected $userList;
 
 	public function __construct(Application $app) {
 		parent::__construct($app);
@@ -85,12 +86,21 @@ class UserTransferObject extends BaseTransferObject {
 		$this->password = $password;
 	}
 
+	public function getUserList() {
+		return $this->userList;
+	}
+
+	public function setUserList($userList) {
+		$this->userList = $userList;
+	}
+
 	public function toArray() {
 		return array(
 				'id'=>$this->id,
 				'name'=>$this->name,
 				'email'=>$this->email,
-				'nick'=>$this->nick
+				'nick'=>$this->nick,
+				'userList'=>$this->userList
 			);
 	}
 

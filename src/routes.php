@@ -15,6 +15,7 @@ $app->get('/php', function() use($app) {
 
 //Admin
 $app->post('/admins/auth', 'Controllers\AdminController::authenticate');
+$app->get('/admins/{idAdmin}/users', 'Controllers\AdminController::getUsers');
 
 //User
 $app->post('/users', 'Controllers\UserController::create');
