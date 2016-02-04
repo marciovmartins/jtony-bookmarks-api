@@ -2,7 +2,7 @@ APLICAÇÃO CLIENTE: https://jtony-bookmarks.herokuapp.com/
 
 API de Bookmarks
 
-Endereço para testes: http://jtony-bookmarks-api.herokuapp.com
+Endereço para testes da API: http://jtony-bookmarks-api.herokuapp.com
 
 Summary:
 -API Rest construída com microframework Silex (baseado em Simfony) seguindo arquitetura MVC, hospedada no Heroku com nginx utilizando DB postgress e Redis
