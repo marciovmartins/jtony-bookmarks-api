@@ -5,3 +5,4 @@
 temptest/**/*
 vendor/**/*
 logs/**/*
+docker/

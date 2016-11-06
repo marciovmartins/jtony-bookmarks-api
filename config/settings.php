@@ -11,7 +11,6 @@ return array(
 
 	'connRedis' => array(
 		'scheme'		=> $_ENV["BOOKMARKS_REDISSCHEME"],
-		'resourcename'	=> $_ENV["BOOKMARKS_REDISNAME"],
 		'host'			=> $_ENV["BOOKMARKS_REDISHOST"],
 		'port'			=> $_ENV["BOOKMARKS_REDISPORT"],
 		'password'		=> $_ENV["BOOKMARKS_REDISPWD"]

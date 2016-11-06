@@ -1,0 +1,58 @@
+version: '2.0'
+services:
+  db:
+    image: postgres:9.6
+    environment:
+      - POSTGRES_DB=bookmarks
+      - POSTGRES_USER=bookmarks
+      - POSTGRES_PASSWORD=bookmarks
+    volumes:
+      - ./docker/conf/postgres/initial-dump.sql:/docker-entrypoint-initdb.d/initial-dump.sql
+      - ./docker/volumes/postgres/data:/var/lib/postgresql/data
+
+  cache:
+    image: redis:3.2.5-alpine
+
+  web:
+    image: nginx:1.11-alpine
+    ports:
+      - 80:80
+    volumes:
+      - ./src:/usr/share/nginx/src
+      - ./web:/usr/share/nginx/html
+      - ./docker/conf/nginx:/etc/nginx/conf.d:ro
+    links:
+      - php
+    depends_on:
+      - php
+
+  php:
+    build: .
+    image: jtony-bookmarks-api
+    environment:
+      - BOOKMARKS_DBDRIVER=pdo_pgsql
+      - BOOKMARKS_DBHOST=db
+      - BOOKMARKS_DBPORT=5432
+      - BOOKMARKS_DBNAME=bookmarks
+      - BOOKMARKS_DBUSER=bookmarks
+      - BOOKMARKS_DBPWD=bookmarks
+      - BOOKMARKS_REDISSCHEME=tcp
+      - BOOKMARKS_REDISHOST=cache
+      - BOOKMARKS_REDISPORT=6379
+      - BOOKMARKS_REDISPWD=
+      - SECURITY_HASH_SUFIX=
+      - CRYPT_METHOD=CRYPT_STD_DES
+      - CRYPT_COST=0
+      - CRYPT_SALT=
+      - TOKEN_TIMEOUT=900
+    volumes:
+      - ./src:/var/www/src
+      - ./vendor:/var/www/vendor
+      - ./web:/var/www/html
+      - ./config:/var/www/config
+    links:
+      - db
+      - cache
+    depends_on:
+      - db
+      - cache
