@@ -18,10 +18,6 @@ CREATE TABLE users
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE users
-  OWNER TO rzydapbdnwkfqv;
---  OWNER TO jtony_blog_api_app;
-
 
 
 -- Table: admins
@@ -44,9 +40,6 @@ CREATE TABLE admins
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE admins
-  OWNER TO rzydapbdnwkfqv;
---  OWNER TO jtony_blog_api_app;
 
 
 -- Table: bookmarks
@@ -69,6 +62,3 @@ CREATE TABLE bookmarks
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE bookmarks
-  OWNER TO rzydapbdnwkfqv;
---  OWNER TO jtony_blog_api_app;
